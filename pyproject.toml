@@ -1,0 +1,55 @@
+[project]
+name = "snowball72-test"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "ae-GYEONGWON",email = "tjsxor50@gmail.com"}
+]
+readme = "자가평가.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi (>=0.115.11,<0.116.0)",
+    "sqlalchemy (>=2.0.38,<3.0.0)",
+    "alembic (>=1.15.1,<2.0.0)",
+    "requests (>=2.32.3,<3.0.0)",
+    "uvicorn[standard] (>=0.34.0,<0.35.0)",
+    "beautifulsoup4 (>=4.13.3,<5.0.0)",
+    "pydantic (>=2.10.6,<3.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+package-mode = false
+
+[tool.poetry.group.dev.dependencies]
+black = "^25.1.0"
+flake8 = "^7.1.2"
+
+# 아래 섹션은 black의 설정
+pre-commit = "^4.1.0"
+mypy = "^1.15.0"
+[tool.black]
+line-length = 88
+target-version = ['py312']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.mypy_cache
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+# 아래 섹션은 flake8의 설정
+[tool.flake8]
+ignore = "E203, E501, W503"
+max-line-length = 88
+exclude = ".git,__pycache__,docs/,old/,build/,dist/"
