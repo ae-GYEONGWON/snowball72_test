@@ -1,1 +1,0 @@
-# snowball72_test

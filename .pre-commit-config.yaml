@@ -6,25 +6,16 @@ repos:
       - id: check-yaml
       - id: check-json
 
-  - repo: https://github.com/psf/black
-    rev: 25.1.0
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.9  # Use the latest Ruff version
     hooks:
-      - id: black
-        name: black
-        description: "Black: The uncompromising Python code formatter"
-        entry: black
-        language: python
-        minimum_pre_commit_version: 2.9.2
-        require_serial: true
-        types_or: [python, pyi]
-
-  - repo: https://github.com/PyCQA/flake8
-    rev: 7.1.2
-    hooks:
-      - id: flake8
-        name: flake8
-        description: "`flake8` is a command-line utility for enforcing style consistency across Python projects."
-        entry: flake8
-        language: python
+      - id: ruff
+        name: ruff-lint
+        description: "Ruff: Fast Python linter"
+        args: ["check", "--fix"]
         types: [python]
-        require_serial: true
+
+      - id: ruff-format
+        name: ruff-format
+        description: "Ruff: Format Python code (replaces Black)"
+        types: [python]
