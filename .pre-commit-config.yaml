@@ -14,7 +14,6 @@ repos:
         description: "Ruff: Fast Python linter"
         args: ["check", "--fix"]
         types: [python]
-
       - id: ruff-format
         name: ruff-format
         description: "Ruff: Format Python code (replaces Black)"
