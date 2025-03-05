@@ -12,9 +12,11 @@ repos:
       - id: ruff
         name: ruff-lint
         description: "Ruff: Fast Python linter"
-        args: ["check", "--fix"]
+        args: ["--fix"]
         types: [python]
+        pass_filenames: true  # ⬅️ 추가 (스테이징된 파일만 검사)
       - id: ruff-format
         name: ruff-format
         description: "Ruff: Format Python code (replaces Black)"
         types: [python]
+        pass_filenames: true  # ⬅️ 추가 (스테이징된 파일만 검사)
