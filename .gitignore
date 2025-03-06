@@ -1,2 +1,3 @@
 .env
 .dmypy.json
+__pycache__
