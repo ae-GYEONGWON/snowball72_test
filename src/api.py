@@ -4,7 +4,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from starlette.responses import JSONResponse
 
-from snowball.view import router as snowball_router
+from src.snowball.view import router as snowball_router
 
 
 class ErrorMessage(BaseModel):
