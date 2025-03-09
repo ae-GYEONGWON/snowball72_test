@@ -261,8 +261,6 @@ def proccess_backtest_detail(db: Session, data_id: int):
     if not result:
         return None, None
 
-    print(result.nav_history, "@" * 100)
-    print(type(result.nav_history), "#" * 100)
     performance = calculate_performance(result.nav_history)
 
     return result, performance
