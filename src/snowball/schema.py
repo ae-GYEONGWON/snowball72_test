@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel
 
 
@@ -24,5 +26,14 @@ class BacktestReq(BaseModel):
 
 class BacktestResp(BaseModel):
     data_id: str
-    output: dict[str, float]  # total_return, cagr, vol, sharpe, mdd
-    last_rebalance_weight: list[tuple[str, float]]  # ETF 비중
+    output: dict[str, float]
+    last_rebalance_weight: list[tuple[str, float]]
+
+
+class BacktestItem(BaseModel):
+    data_id: str
+    last_rebalance_weight: list[dict[str, Any]]
+
+
+class BacktestListResp(BaseModel):
+    backtests: list[BacktestItem]
