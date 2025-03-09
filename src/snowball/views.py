@@ -13,6 +13,7 @@ from src.snowball.schema import (
     BacktestResp,
 )
 from src.snowball.service import (
+    delete_backtest_result_by_id,
     get_all_backtest_ids_with_weights,
 )
 
@@ -86,6 +87,10 @@ def get_detail_by_data_id(data_id: int, db: Session = Depends(get_db)):
 
 
 @router.delete("/backtest/{data_id}")
-def delete_by_data_id(db: Session = Depends(get_db)):
+def delete_by_data_id(data_id: int, db: Session = Depends(get_db)):
     """data_id 에 해당하는 항목을 삭제하는 API"""
-    return
+    success = delete_backtest_result_by_id(db, data_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Backtest result not found")
+
+    return {"message": "Backtest result deleted", "data_id": data_id}

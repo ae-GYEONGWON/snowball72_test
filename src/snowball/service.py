@@ -1,6 +1,6 @@
 from datetime import date
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from src.snowball.models import BacktestResult, Stock
@@ -30,3 +30,13 @@ def get_backtest_result_by_id(db: Session, data_id: int):
     stmt = select(BacktestResult).where(BacktestResult.data_id == data_id)
     result = db.execute(stmt).scalar_one_or_none()
     return result
+
+
+def delete_backtest_result_by_id(db: Session, data_id: int) -> bool:
+    """해당 data_id를 가진 백테스트 결과를 삭제하는 함수"""
+    stmt = delete(BacktestResult).where(BacktestResult.data_id == data_id)
+    result = db.execute(stmt)
+    db.commit()
+
+    # 삭제된 행이 있는 경우 True 반환
+    return result.rowcount > 0
