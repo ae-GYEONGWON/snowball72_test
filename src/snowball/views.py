@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from src.database import get_db
 from src.snowball.flows import load_excel_to_db, run_backtest
-from src.snowball.schema import BacktestInput
+from src.snowball.schema import BacktestReq, BacktestResp
 
 router = APIRouter()
 
@@ -18,18 +18,10 @@ def fetch_and_store_etf_prices(db: Session = Depends(get_db)):
 
 
 @router.post("/backtest")
-def backtest_endpoint(input_data: BacktestInput, db: Session = Depends(get_db)):
-    result = run_backtest(db, input_data)
-
-    from src.snowball.flows import calculate_performance
-
-    performance = calculate_performance(result["nav_history"])
-    return {
-        "result": result,
-        "nav_history": result["nav_history"],
-        "performance": performance,
-        "last_rebalance_weight": result["last_rebalance_weight"],
-    }
+def backtest_endpoint(backtest_req: BacktestReq, db: Session = Depends(get_db)):
+    """입력을 받아 작성한 계산 로직을 실행, 저장하고, 저장 항목의 key 인 data_id 와 통계값을 반환하는 API"""
+    result = run_backtest(db, backtest_req)
+    return BacktestResp(**result)
 
 
 @router.get("/backtest/list")

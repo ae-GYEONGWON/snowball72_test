@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 
-class BacktestInput(BaseModel):
+class BacktestReq(BaseModel):
     start_year: int
     start_month: int
     initial_investment: float
@@ -20,3 +20,9 @@ class BacktestInput(BaseModel):
                 "rebalance_period": 3,
             }
         }
+
+
+class BacktestResp(BaseModel):
+    data_id: str
+    output: dict[str, float]  # total_return, cagr, vol, sharpe, mdd
+    last_rebalance_weight: list[tuple[str, float]]  # ETF 비중
