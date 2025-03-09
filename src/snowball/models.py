@@ -23,9 +23,9 @@ class Stock(Base):
 class BacktestResult(Base):
     __tablename__ = "backtest_results"
 
-    data_id: Mapped[str] = mapped_column(
-        String, primary_key=True, index=True
-    )  # 백테스트 고유 ID
+    data_id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True, index=True
+    )  # 🔹 int 타입, 자동 증가
     start_year: Mapped[int] = mapped_column(Integer, nullable=False)
     start_month: Mapped[int] = mapped_column(Integer, nullable=False)
     initial_investment: Mapped[float] = mapped_column(Float, nullable=False)
