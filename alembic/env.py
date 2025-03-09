@@ -21,7 +21,7 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 from src.database import Base  # noqa: E402
-from src.snowball.models import Stock  # noqa: F401, E402
+from src.snowball.models import BacktestResult, Stock  # noqa: F401, E402
 
 target_metadata = Base.metadata
 
