@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import numpy as np
 import pandas as pd
 from sqlalchemy.orm import Session
 
@@ -10,7 +11,6 @@ from src.snowball.service import get_by_date
 
 def load_excel_to_db(db: Session):
     """엑셀 파일에서 종가 데이터를 읽어 DB에 저장"""
-    # ✅ 엑셀 데이터 불러오기
     EXCEL_FILE_PATH = "src/snowball/백엔드 과제.xlsx"
     df = pd.read_excel(EXCEL_FILE_PATH, sheet_name="가격")
     df = df.iloc[:, :6]
@@ -19,17 +19,16 @@ def load_excel_to_db(db: Session):
     df["Date"] = pd.to_datetime(df["Date"], errors="coerce").dt.date
     df = df.dropna()
 
-    # ✅ 종목별로 저장
     for _, row in df.iterrows():
         for ticker in ["SPY", "QQQ", "GLD", "TIP", "BIL"]:
             stock_data = Stock(date=row["Date"], ticker=ticker, price=row[ticker])
-            db.merge(stock_data)  # ✅ 중복 저장 방지 (이미 있으면 업데이트)
+            db.merge(stock_data)
 
     db.commit()
     print("✅ 엑셀 데이터가 성공적으로 DB에 저장되었습니다.")
 
 
-# ✅ 리밸런싱 날짜 및 비중을 미리 계산
+# 리밸런싱 날짜 및 비중을 미리 계산
 def calculate_rebalance_date_and_weights(
     start_date: datetime,
     end_date: datetime,
@@ -40,23 +39,17 @@ def calculate_rebalance_date_and_weights(
     current_date = start_date
 
     while current_date <= end_date:
-        # 🔹 trade_date 설정 (없으면 가장 가까운 거래일 선택)
         trade_date = datetime(
             current_date.year, current_date.month, backtest_input.trade_date
         )
         df.index = pd.to_datetime(df.index)
         trade_date = pd.Timestamp(trade_date)
-        # valid_dates = df.index[df.index.year == trade_date.year][
-        #     df.index.month == trade_date.month  # type: ignore[attr-defined]
-        # ]
         valid_dates = df.index[
             (df.index.year == trade_date.year) & (df.index.month == trade_date.month)
         ]
 
         if trade_date not in valid_dates:
-            trade_date = valid_dates[
-                valid_dates < trade_date
-            ].max()  # 가장 가까운 날짜 찾기
+            trade_date = valid_dates[valid_dates < trade_date].max()
 
         if pd.notna(trade_date):  # 유효한 날짜만 저장
             # ✅ rebalance_period 전의 데이터만 사용
@@ -178,17 +171,51 @@ def run_backtest(db: Session, backtest_input: BacktestInput):
             )
             nav_history.append((date, total_nav))
 
-            # print("weights: ", weights)
-            # print(
-            #     "stock_data: ",
-            #     [(ticker, holdings[ticker] * row[ticker]) for ticker in holdings],
-            # )
-            # print("trading_fee: ", trading_fee)
-
     # 결과 데이터프레임
     nav_df = pd.DataFrame(nav_history, columns=["date", "nav"])
 
     return {
         "nav_history": nav_df.to_dict(orient="records"),
         "last_rebalance_weight": weights,
+    }
+
+
+def calculate_performance(
+    nav_history: list[tuple[datetime, float]], risk_free_rate: float = 0.02
+):
+    """
+    백테스트 결과에서 통계값 계산
+    :param nav_history: [(date, nav)] 형태의 NAV 기록 리스트
+    :param risk_free_rate: 무위험 수익률 (기본값: 2% 연환산)
+    :return: 통계값 딕셔너리
+    """
+    df = pd.DataFrame(nav_history, columns=["date", "nav"])
+    df["returns"] = df["nav"].pct_change()  # ✅ 일간 수익률 계산
+
+    # ✅ 전체 기간 수익률
+    total_return = df["nav"].iloc[-1] / df["nav"].iloc[0] - 1
+
+    # ✅ 연 환산 수익률 (CAGR)
+    num_years = (
+        df["date"].iloc[-1] - df["date"].iloc[0]
+    ).days / 365.25  # 투자 기간 (연 단위)
+    cagr = (df["nav"].iloc[-1] / df["nav"].iloc[0]) ** (1 / num_years) - 1
+
+    # ✅ 연 변동성 (Volatility, 표준편차 연율화)
+    volatility = df["returns"].std() * np.sqrt(252)  # 252 거래일 기준 연율화
+
+    # ✅ 샤프 지수 (Sharpe Ratio)
+    sharpe_ratio = (cagr - risk_free_rate) / volatility if volatility != 0 else np.nan
+
+    # ✅ 최대 손실폭 (MDD, Maximum Drawdown)
+    df["cum_max"] = df["nav"].cummax()  # 최고점 누적 기록
+    df["drawdown"] = df["nav"] / df["cum_max"] - 1  # 낙폭 계산
+    mdd = df["drawdown"].min()  # 최대 손실폭
+
+    return {
+        "total_return": total_return,
+        "cagr": cagr,
+        "volatility": volatility,
+        "sharpe_ratio": sharpe_ratio,
+        "mdd": mdd,
     }
