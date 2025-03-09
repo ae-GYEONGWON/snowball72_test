@@ -25,15 +25,39 @@ class BacktestReq(BaseModel):
 
 
 class BacktestResp(BaseModel):
-    data_id: str
+    data_id: int
     output: dict[str, float]
     last_rebalance_weight: list[tuple[str, float]]
 
 
 class BacktestItem(BaseModel):
-    data_id: str
+    data_id: int
     last_rebalance_weight: list[dict[str, Any]]
 
 
 class BacktestListResp(BaseModel):
     backtests: list[BacktestItem]
+
+
+class BacktestInputResp(BaseModel):
+    start_year: int
+    start_month: int
+    invest: float
+    trade_date: int
+    cost: float
+    caculate_month: int
+
+
+class BacktestOutputResp(BaseModel):
+    data_id: int
+    total_return: float
+    cagr: float
+    vol: float
+    sharpe: float
+    mdd: float
+
+
+class BacktestDetailResp(BaseModel):
+    input: BacktestInputResp
+    output: BacktestOutputResp
+    last_rebalance_weight: list[tuple[str, float]]

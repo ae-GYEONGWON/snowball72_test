@@ -1,6 +1,5 @@
 from datetime import datetime
 from typing import Any
-from uuid import uuid4
 
 import numpy as np
 import pandas as pd
@@ -8,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from src.snowball.models import BacktestResult, Stock
 from src.snowball.schema import BacktestReq
-from src.snowball.service import get_by_date
+from src.snowball.service import get_backtest_result_by_id, get_by_date
 
 
 def load_excel_to_db(db: Session):
@@ -127,9 +126,7 @@ def save_backtest_result(
     nav_history: list[dict[str, Any]],
     rebalance_weights: list[dict],
     db: Session,
-) -> str:
-    data_id = str(uuid4())
-
+) -> int:
     formatted_nav = [
         {**record, "date": record["date"].isoformat()} for record in nav_history
     ]
@@ -138,7 +135,6 @@ def save_backtest_result(
     ]
 
     backtest_result = BacktestResult(
-        data_id=data_id,
         start_year=backtest_req.start_year,
         start_month=backtest_req.start_month,
         initial_investment=backtest_req.initial_investment,
@@ -150,7 +146,7 @@ def save_backtest_result(
     )
     db.add(backtest_result)
     db.commit()
-    return data_id
+    return backtest_result.data_id
 
 
 # 백테스트 실행
@@ -238,6 +234,7 @@ def calculate_performance(
 ) -> dict[str, Any]:
     """백테스트 결과에서 통계값 계산"""
     df = pd.DataFrame(nav_history, columns=["date", "nav"])
+    df["date"] = pd.to_datetime(df["date"])
     df["returns"] = df["nav"].pct_change()
 
     total_return = df["nav"].iloc[-1] / df["nav"].iloc[0] - 1
@@ -256,3 +253,16 @@ def calculate_performance(
         "sharpe": sharpe_ratio,
         "mdd": mdd,
     }
+
+
+def proccess_backtest_detail(db: Session, data_id: int):
+    result = get_backtest_result_by_id(db, data_id)
+
+    if not result:
+        return None, None
+
+    print(result.nav_history, "@" * 100)
+    print(type(result.nav_history), "#" * 100)
+    performance = calculate_performance(result.nav_history)
+
+    return result, performance
